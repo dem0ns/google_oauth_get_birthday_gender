@@ -39,7 +39,7 @@ oauth.register(
     client_id=os.environ["GOOGLE_CLIENT_ID"],
     client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
-    # client_kwargs={"scope": "openid email profile https://www.googleapis.com/auth/user.birthday.read"},
+    # client_kwargs={"scope": "openid email profile https://www.googleapis.com/auth/user.birthday.read https://www.googleapis.com/auth/user.gender.read"},
     # client_kwargs={"scope": "openid email profile https://www.googleapis.com/auth/gmail.readonly"},
     client_kwargs={"scope": "openid email profile"},
     # client_kwargs={"scope": "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/documents.readonly https://www.googleapis.com/auth/drive.readonly"},
@@ -364,7 +364,7 @@ def login_full():
     return oauth.google.authorize_redirect(
         REDIRECT_URI,
         access_type="offline",
-        scope="openid email profile https://www.googleapis.com/auth/user.birthday.read",
+        scope="openid email profile https://www.googleapis.com/auth/user.birthday.read https://www.googleapis.com/auth/user.gender.read",
     )
 
 

@@ -19,13 +19,13 @@ The **Authorized redirect URIs** must exactly match the callback path in your co
 
 | Environment | Redirect URI to Add |
 |-------------|---------------------|
-| Local dev   | `http://localhost:8008/auth/callback` |
-| Production  | `https://googleoauthgetbirthdaygender.vercel.app/auth/callback` |
+| Local dev   | `http://localhost:8008/callback` |
+| Production  | `https://googleoauthgetbirthdaygender.vercel.app/callback` |
 
-> If the registered URI does not include `/auth/callback`, you will get a `redirect_uri_mismatch` error.
-> Either update the callback path in code or add the URIs above in the Console.
+> If the registered URI does not match, you will get a `redirect_uri_mismatch` error.
 
 ## Files
 
 - `app.py` — All logic (login / callback / logout)
+- `api/index.py` — Vercel serverless entry point
 - `.env` — Credentials (ignored by .gitignore, do not commit)

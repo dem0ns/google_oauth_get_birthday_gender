@@ -289,6 +289,14 @@ def _build_page(user: dict) -> str:
         else "<span class='refresh-tag tag-no'>No</span>"
     )
 
+    # --- error block ---
+    error_html = ""
+    if "_people_api_error" in user:
+        error_html = (
+            f"<div class='extra-section' style='color:#f87171'>"
+            f"<b>People API Error:</b> {user['_people_api_error']}</div>"
+        )
+
     # --- raw json ---
     raw = json.dumps(user, indent=2, ensure_ascii=False)
 
@@ -297,36 +305,27 @@ def _build_page(user: dict) -> str:
         "<meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'>"
         "<title>Google OAuth</title>"
-        f"{STYLE}"
-        "</head><body><div class='container'>"
-        # header
-        "<div class='header'>"
-        f"{photo_html}"
-        "<div class='header-info'>"
+        + STYLE
+        + "</head><body><div class='container'>"
+        + "<div class='header'>"
+        + photo_html
+        + "<div class='header-info'>"
         f"<h2>{name}</h2>"
         f"<div class='email'>{email}</div>"
         "</div></div>"
-        # highlights
-        f"{cards_html}"
-        # actions
-        "<div class='actions'>"
+        + cards_html
+        + "<div class='actions'>"
         "<a class='act-primary' href='/refresh'>Refresh Profile</a>"
         "<a class='act-secondary' href='/gmail'>Gmail</a>"
         "<a class='act-secondary' href='/gdocs'>Google Docs</a>"
         "<a class='act-danger' href='/logout'>Logout</a>"
         f" Refresh Token: {rt_tag}"
         "</div>"
-        # user info table
         "<div class='section-title'>User Info</div>"
         f"<table class='info-table'>{rows}</table>"
-        # people api extras
-        f"{extras_html}"
-        # error
-        (f"<div class='extra-section' style='color:#f87171'>"
-         f"<b>People API Error:</b> {user['_people_api_error']}</div>")
-        if "_people_api_error" in user else ""
-        # raw json
-        "<details><summary>View Raw JSON</summary>"
+        + extras_html
+        + error_html
+        + "<details><summary>View Raw JSON</summary>"
         f"<pre>{raw}</pre></details>"
         "</div></body></html>"
     )

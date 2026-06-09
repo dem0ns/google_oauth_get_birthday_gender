@@ -347,7 +347,7 @@ def index():
         "<p>Sign in with your Google account to continue</p>"
         f"<a class='btn btn-google' href='/login'>{GOOGLE_SVG} Sign in with Google</a>"
         "<br>"
-        "<a class='btn btn-birthday' href='/login_full'>Sign in with Birthday scope</a>"
+        "<a class='btn btn-birthday' href='/login_full'>Sign in with Birthday & Gender scope</a>"
         "</div></div></body></html>"
     )
 

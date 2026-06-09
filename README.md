@@ -17,10 +17,12 @@ This implies that "public" birthday and gender are scoped to **Google's own serv
 
 1. A developer creates a standard Google OAuth 2.0 app.
 2. In the Google Cloud Console, the developer enables the **People API**.
-3. The app requests the scopes `user.birthday.read` and `user.gender.read`.
+3. The app requests only the basic scopes: `openid email profile` — **no birthday or gender scopes needed**.
 4. When a user whose birthday/gender is set to **"Anyone"** logs in, the app calls `people.googleapis.com/v1/people/me` and retrieves their birthday and gender — **without any additional consent prompt**.
 
-The user sees a normal "Sign in with Google" flow (openid / email / profile). The extra People API scopes (`user.birthday.read`, `user.gender.read`) are bundled in silently. There is no indication to the user that their birthday or gender will be accessed.
+The user sees a normal "Sign in with Google" flow. There is no indication that their birthday or gender will be accessed. The People API returns this data silently for any user who has set it to public visibility.
+
+> **Note:** If the user has birthday/gender set to private, the People API will not return this data through the basic scopes. The app then offers a second login option that explicitly requests `user.birthday.read` and `user.gender.read` scopes — this triggers a proper consent screen where the user knowingly authorizes access.
 
 ### What's Exposed
 
@@ -37,9 +39,11 @@ The People API returns structured data:
 
 Live demo: **https://googleoauthgetbirthdaygender.vercel.app**
 
-1. Click **"Sign in with Birthday & Gender scope"**.
+1. Click **"Sign in with Google"** (basic scopes only — no birthday/gender consent).
 2. Authorize the app with your Google account.
-3. If your birthday/gender is set to "Anyone", the app displays them immediately.
+3. If your birthday/gender is set to "Anyone", the app displays them immediately — you were never asked to authorize this.
+
+Alternatively, click **"Sign in with Birthday & Gender scope"** to explicitly authorize access (this triggers a proper consent screen).
 
 ## Setup
 

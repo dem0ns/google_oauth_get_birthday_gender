@@ -39,10 +39,7 @@ oauth.register(
     client_id=os.environ["GOOGLE_CLIENT_ID"],
     client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
-    # client_kwargs={"scope": "openid email profile https://www.googleapis.com/auth/user.birthday.read https://www.googleapis.com/auth/user.gender.read"},
-    # client_kwargs={"scope": "openid email profile https://www.googleapis.com/auth/gmail.readonly"},
     client_kwargs={"scope": "openid email profile"},
-    # client_kwargs={"scope": "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/documents.readonly https://www.googleapis.com/auth/drive.readonly"},
 )
 
 # ---------------------------------------------------------------------------
@@ -100,9 +97,6 @@ STYLE = """
     flex: 1; min-width: 200px; padding: 20px 24px; border-radius: 12px;
     position: relative; overflow: hidden;
   }
-  .highlight-card::before {
-    content: ''; position: absolute; inset: 0; opacity: .12;
-  }
   .card-identity {
     background: linear-gradient(135deg, rgba(244,114,182,.12), rgba(56,189,248,.12));
     border: 1px solid rgba(167,139,250,.25);
@@ -140,8 +134,6 @@ STYLE = """
   }
   .act-primary { background: #1e40af; color: #dbeafe; }
   .act-primary:hover { background: #1d4ed8; }
-  .act-secondary { background: #1e293b; color: #94a3b8; }
-  .act-secondary:hover { background: #334155; color: #e2e8f0; }
   .act-danger { background: #7f1d1d; color: #fca5a5; }
   .act-danger:hover { background: #991b1b; }
   .refresh-tag {
@@ -315,8 +307,6 @@ def _build_page(user: dict) -> str:
         + cards_html
         + "<div class='actions'>"
         "<a class='act-primary' href='/refresh'>Refresh Profile</a>"
-        "<a class='act-secondary' href='/gmail'>Gmail</a>"
-        "<a class='act-secondary' href='/gdocs'>Google Docs</a>"
         "<a class='act-danger' href='/logout'>Logout</a>"
         f" Refresh Token: {rt_tag}"
         "</div>"
@@ -367,7 +357,7 @@ def login():
 
 @app.route("/login_full")
 def login_full():
-    # Same as /login but with extra scopes (e.g. birthday)
+    # Same as /login but with explicit birthday & gender scopes
     return oauth.google.authorize_redirect(
         REDIRECT_URI,
         access_type="offline",
@@ -404,19 +394,9 @@ def auth_callback():
         except Exception as e:
             user["_people_api_error"] = str(e)
 
-    # Debug: print token keys
-    print("\n--- RAW TOKEN KEYS ---")
-    print(sorted(token.keys()))
-    for k, v in token.items():
-        if "refresh" in str(k).lower() or "refresh" in str(v)[:50].lower() if isinstance(v, str) else False:
-            print(f">>> refresh-related: {k}")
-
     # Save refresh_token to session
     if token.get("refresh_token"):
         session["refresh_token"] = token["refresh_token"]
-        print(">>> refresh_token SAVED to session")
-    else:
-        print(">>> refresh_token NOT FOUND in token response")
 
     session["user"] = user
     print("\n" + "=" * 60)
@@ -482,165 +462,6 @@ def refresh():
     print(json.dumps(user, indent=2, ensure_ascii=False))
     print("=" * 60 + "\n")
     return redirect("/")
-
-
-def _api_err(resp):
-    """Extract API error into formatted HTML, or empty string if OK."""
-    if resp.ok:
-        return ""
-    try:
-        err = resp.json().get("error", {})
-        msg = err.get("message", resp.text)
-        code = err.get("code", resp.status_code)
-        reason = err.get("errors", [{}])[0].get("reason", "")
-    except Exception:
-        msg, code, reason = resp.text, resp.status_code, ""
-    return (
-        f"<div style='background:#7f1d1d;border:1px solid #991b1b;padding:12px;margin:12px 0;border-radius:8px;color:#fca5a5'>"
-        f"<b>API Error [{code}]</b><br>{msg}"
-        f"{f'<br><small>reason: {reason}</small>' if reason else ''}"
-        f"</div>"
-    )
-
-
-def _page_wrap(title: str, body: str) -> str:
-    return (
-        "<!DOCTYPE html><html lang='en'><head>"
-        "<meta charset='utf-8'>"
-        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-        f"<title>{title}</title>"
-        f"{STYLE}"
-        f"</head><body><div class='container'>{body}</div></body></html>"
-    )
-
-
-@app.route("/gmail")
-def gmail():
-    """Fetch recent emails via Gmail API."""
-    access_token = _get_access_token()
-    if not access_token:
-        return _page_wrap("Gmail", "Cannot get access_token. Please <a href='/login' style='color:#60a5fa'>login</a> first.")
-    headers = {"Authorization": f"Bearer {access_token}"}
-    errors = ""
-
-    # 1. List labels
-    labels_resp = requests.get(
-        "https://gmail.googleapis.com/gmail/v1/users/me/labels",
-        headers=headers, timeout=10,
-    )
-    errors += _api_err(labels_resp)
-    labels = labels_resp.json().get("labels", []) if labels_resp.ok else []
-
-    # 2. Fetch last 10 messages
-    msgs_resp = requests.get(
-        "https://gmail.googleapis.com/gmail/v1/users/me/messages",
-        params={"maxResults": 10},
-        headers=headers, timeout=10,
-    )
-    errors += _api_err(msgs_resp)
-    messages = []
-    if msgs_resp.ok:
-        for msg in msgs_resp.json().get("messages", []):
-            detail = requests.get(
-                f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{msg['id']}",
-                params={"format": "metadata", "metadataHeaders": "Subject,From,Date"},
-                headers=headers, timeout=10,
-            )
-            if detail.ok:
-                d = detail.json()
-                headers_map = {h["name"]: h["value"] for h in d.get("payload", {}).get("headers", [])}
-                messages.append({
-                    "id": msg["id"],
-                    "subject": headers_map.get("Subject", "(no subject)"),
-                    "from": headers_map.get("From", "(unknown)"),
-                    "date": headers_map.get("Date", ""),
-                    "snippet": d.get("snippet", ""),
-                })
-
-    label_html = "".join(f"<span class='pill'>{l['name']}</span>" for l in labels)
-    msg_rows = ""
-    for m in messages:
-        msg_rows += (
-            f"<tr>"
-            f"<td class='val' style='white-space:nowrap'>{m['date']}</td>"
-            f"<td class='val'>{m['from']}</td>"
-            f"<td class='val'><b>{m['subject']}</b><br>"
-            f"<small style='color:#64748b'>{m['snippet']}</small></td></tr>"
-        )
-    body = (
-        "<a class='act-secondary' href='/' style='margin-bottom:20px;display:inline-block'>← Back</a>"
-        "<h2 style='margin-bottom:16px'>Gmail</h2>"
-        f"{errors}"
-        f"<div class='section-title'>Labels ({len(labels)})</div>"
-        f"<div style='margin-bottom:16px'>{label_html}</div>"
-        f"<div class='section-title'>Recent {len(messages)} Messages</div>"
-        f"<table class='info-table'>{msg_rows}</table>"
-    )
-    return _page_wrap("Gmail", body)
-
-
-def _get_access_token():
-    """Exchange refresh_token for a new access_token. Returns None on failure."""
-    rt = session.get("refresh_token")
-    if not rt:
-        return None
-    resp = requests.post(
-        "https://oauth2.googleapis.com/token",
-        data={
-            "client_id": os.environ["GOOGLE_CLIENT_ID"],
-            "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
-            "refresh_token": rt,
-            "grant_type": "refresh_token",
-        },
-        timeout=10,
-    )
-    return resp.json().get("access_token") if resp.ok else None
-
-
-@app.route("/gdocs")
-def gdocs():
-    """List recent Google Docs via Drive API."""
-    access_token = _get_access_token()
-    if not access_token:
-        return _page_wrap("Google Docs", "Cannot get access_token. Please <a href='/login' style='color:#60a5fa'>login</a> first.")
-    headers = {"Authorization": f"Bearer {access_token}"}
-
-    drive_resp = requests.get(
-        "https://www.googleapis.com/drive/v3/files",
-        params={
-            "q": "mimeType='application/vnd.google-apps.document'",
-            "fields": "files(id,name,createdTime,modifiedTime,owners)",
-            "orderBy": "modifiedTime desc",
-            "pageSize": 20,
-        },
-        headers=headers, timeout=10,
-    )
-    errors = _api_err(drive_resp)
-    files = drive_resp.json().get("files", []) if drive_resp.ok else []
-
-    doc_rows = ""
-    for f in files:
-        owner = f.get("owners", [{}])[0].get("displayName", "?")
-        doc_rows += (
-            f"<tr>"
-            f"<td class='val'><a href='https://docs.google.com/document/d/{f['id']}/edit' target='_blank' style='color:#60a5fa'>{f['name']}</a></td>"
-            f"<td class='val'>{owner}</td>"
-            f"<td class='val' style='white-space:nowrap'>{f.get('createdTime','')}</td>"
-            f"<td class='val' style='white-space:nowrap'>{f.get('modifiedTime','')}</td>"
-            f"</tr>"
-        )
-
-    body = (
-        "<a class='act-secondary' href='/' style='margin-bottom:20px;display:inline-block'>← Back</a>"
-        "<h2 style='margin-bottom:16px'>Google Docs</h2>"
-        f"{errors}"
-        f"<div class='section-title'>Recent {len(files)} Documents</div>"
-        f"<table class='info-table'>"
-        f"<tr><td class='key'>Title</td><td class='key'>Owner</td>"
-        f"<td class='key'>Created</td><td class='key'>Modified</td></tr>"
-        f"{doc_rows}</table>"
-    )
-    return _page_wrap("Google Docs", body)
 
 
 @app.route("/logout")

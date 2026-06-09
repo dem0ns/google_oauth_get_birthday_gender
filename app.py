@@ -308,7 +308,10 @@ def _build_page(user: dict) -> str:
         + "<div class='header-info'>"
         f"<h2>{name}</h2>"
         f"<div class='email'>{email}</div>"
-        "</div></div>"
+        "</div>"
+        "<a href='https://github.com/dem0ns/google_oauth_get_birthday_gender' target='_blank' "
+        "style='margin-left:auto;color:#64748b;font-size:.82rem;text-decoration:none'>GitHub</a>"
+        "</div>"
         + cards_html
         + "<div class='actions'>"
         "<a class='act-primary' href='/refresh'>Refresh Profile</a>"
@@ -348,6 +351,9 @@ def index():
         f"<a class='btn btn-google' href='/login'>{GOOGLE_SVG} Sign in with Google</a>"
         "<br>"
         "<a class='btn btn-birthday' href='/login_full'>Sign in with Birthday & Gender scope</a>"
+        "<br><br>"
+        "<a href='https://github.com/dem0ns/google_oauth_get_birthday_gender' target='_blank' "
+        "style='color:#64748b;font-size:.82rem;text-decoration:none'>GitHub</a>"
         "</div></div></body></html>"
     )
 

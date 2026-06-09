@@ -103,23 +103,22 @@ STYLE = """
   .highlight-card::before {
     content: ''; position: absolute; inset: 0; opacity: .12;
   }
-  .highlight-card .label {
+  .card-identity {
+    background: linear-gradient(135deg, rgba(244,114,182,.12), rgba(56,189,248,.12));
+    border: 1px solid rgba(167,139,250,.25);
+  }
+  .card-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0;
+  }
+  .card-row + .card-row { border-top: 1px solid rgba(148,163,184,.15); }
+  .card-label {
     font-size: .75rem; text-transform: uppercase; letter-spacing: .08em;
-    margin-bottom: 6px; font-weight: 600;
+    font-weight: 600; color: #a78bfa;
   }
-  .highlight-card .value { font-size: 1.5rem; font-weight: 700; }
-  .card-birthday {
-    background: linear-gradient(135deg, rgba(244,114,182,.15), rgba(167,139,250,.15));
-    border: 1px solid rgba(244,114,182,.3);
+  .card-value {
+    font-size: 1.3rem; font-weight: 700; color: #f0abfc;
   }
-  .card-birthday .label { color: #f472b6; }
-  .card-birthday .value { color: #fce7f3; }
-  .card-gender {
-    background: linear-gradient(135deg, rgba(56,189,248,.15), rgba(99,102,241,.15));
-    border: 1px solid rgba(56,189,248,.3);
-  }
-  .card-gender .label { color: #38bdf8; }
-  .card-gender .value { color: #e0f2fe; }
 
   /* --- Info table --- */
   .section-title {
@@ -228,20 +227,17 @@ def _build_page(user: dict) -> str:
     gender = _extract_gender(user)
     cards_html = ""
     if birthday or gender:
-        cards_html = '<div class="highlights">'
+        lines = ""
         if birthday:
-            cards_html += (
-                '<div class="highlight-card card-birthday">'
-                '<div class="label">Birthday</div>'
-                f'<div class="value">{birthday}</div></div>'
-            )
+            lines += f'<div class="card-row"><span class="card-label">Birthday</span><span class="card-value">{birthday}</span></div>'
         if gender:
-            cards_html += (
-                '<div class="highlight-card card-gender">'
-                '<div class="label">Gender</div>'
-                f'<div class="value">{gender}</div></div>'
-            )
-        cards_html += "</div>"
+            lines += f'<div class="card-row"><span class="card-label">Gender</span><span class="card-value">{gender}</span></div>'
+        cards_html = (
+            '<div class="highlights">'
+            '<div class="highlight-card card-identity">'
+            + lines
+            + '</div></div>'
+        )
 
     # --- basic info table ---
     rows = ""

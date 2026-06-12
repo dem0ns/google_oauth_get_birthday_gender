@@ -302,12 +302,13 @@ def _build_page(user: dict) -> str:
         f"<div class='email'>{email}</div>"
         "</div>"
         "<a href='https://github.com/dem0ns/google_oauth_get_birthday_gender' target='_blank' "
-        "style='margin-left:auto;color:#64748b;font-size:.82rem;text-decoration:none'>GitHub</a>"
+        "style='margin-left:auto;color:#64748b;font-size:.82rem;text-decoration:none'>Vulnerability Details</a>"
         "</div>"
         + cards_html
         + "<div class='actions'>"
         "<a class='act-primary' href='/refresh'>Refresh Profile</a>"
         "<a class='act-danger' href='/logout'>Logout</a>"
+        "<a class='act-danger' href='https://myaccount.google.com/connections/overview/AcbYNTfsyQe-wsmAcAlkmA4t9A5d_bK5m54KULhMhz_J6f6Hd4WR8cVTSAIWtEHGCw2GwIIqCxJl9NMXHZpacmlKoiE?hl=en&utm_source=OGB&utm_medium=act&gar=WzJd' target='_blank'>Revoke Access</a>"
         f" Refresh Token: {rt_tag}"
         "</div>"
         "<div class='section-title'>User Info</div>"
@@ -343,8 +344,8 @@ def index():
         "<a class='btn btn-birthday' href='/login_full'>Sign in with Birthday &amp; Gender scope</a>"
         "<div style='color:#64748b;font-size:.78rem;margin:6px 0 0'>Explicit scopes — triggers proper consent screen</div>"
         "<br><br>"
-        "<a href='https://github.com/dem0ns/google_oauth_get_birthday_gender' target='_blank' "
-        "style='color:#64748b;font-size:.82rem;text-decoration:none'>GitHub</a>"
+        "<a class='btn' href='https://github.com/dem0ns/google_oauth_get_birthday_gender' target='_blank' "
+        "style='background:#1e293b;color:#94a3b8;border:1px solid #334155;margin-top:16px'>Vulnerability Details</a>"
         "</div></div></body></html>"
     )
 

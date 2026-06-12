@@ -6,12 +6,18 @@ A proof-of-concept demonstrating how the Google People API exposes users' birthd
 
 When a user sets their birthday and gender visibility to **"Anyone"** (public) in their Google Account settings, they expect this information to appear only on Google's own services. [Google's own documentation](https://support.google.com/accounts/answer/6304920#zippy=%2Cwhere-this-info-can-show-up%2Cwho-can-view-your-info:~:text=Info%20in%20your,Play%2C%20and%20YouTube.) states:
 
+![Google Account "Where this info can show up" panel](where_info_shows.png)
+
 > **Where this info can show up**
 > Info in your Google Account that you make visible to Anyone can be found in a few places:
 > - On Google services where you can contact other people, like Google Chat and Gmail.
 > - On Google services where you create content, like Maps, Play, and YouTube.
 
 This implies that "public" birthday and gender are scoped to **Google's own services only**. However, that is not the case.
+
+Google's [Sign in with Google documentation](https://support.google.com/accounts/answer/12921417?sjid=1919169284593837430-NC) further claims:
+
+![Google "How Sign in with Google helps you share data safely"](shared_data.png)
 
 ### How It Works
 
